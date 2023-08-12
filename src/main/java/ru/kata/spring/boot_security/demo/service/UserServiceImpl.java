@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     private final UserRepo userRepo;
     private final RoleRepo roleRepo;
-    private final PasswordEncoder passwordEncoder = WebSecurityConfig.bCryptPasswordEncoder();
+    private final PasswordEncoder passwordEncoder = WebSecurityConfig.passwordEncoder();
 
     public UserServiceImpl(UserRepo userRepo, RoleRepo roleRepo) {
         this.userRepo = userRepo;
@@ -60,11 +60,15 @@ public class UserServiceImpl implements UserService {
         user.setLastname(userDTO.getLastname());
         user.setEmail(userDTO.getEmail());
         user.setAge(userDTO.getAge());
-        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        if(!passwordEncoder.matches(passwordEncoder.encode(userDTO.getPassword()), user.getPassword())) {
+            user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        }
+//        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         user.setRoles(userDTO.getRoles().stream().map(x -> roleRepo.findByRole(x.getRole())).collect(Collectors.toSet()));
         userRepo.save(user);
         return userDTO;
     }
+
 
     @Transactional
     @Override
